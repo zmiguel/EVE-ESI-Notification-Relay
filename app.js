@@ -70,6 +70,33 @@ module.exports = app;
 
 //actuall app stuff
 
+var fuels = [
+	{
+        "TypeID": 4051,
+        "NAME": "Nitrogen Fuel Block"
+    },
+    {
+        "TypeID": 4246,
+        "NAME": "Hydrogen Fuel Block"
+    },
+    {
+        "TypeID": 4247,
+        "NAME": "Helium Fuel Block"
+    },
+    {
+        "TypeID": 4312,
+        "NAME": "Oxygen Fuel Block"
+    }
+]
+
+function getFuelName(id) {
+    for (let i = 0; i < fuels.length; i++) {
+        if (fuels[i].TypeID === id) {
+            return fuels[i].NAME;
+        }
+    }
+}
+
 function getSystemName(id) {
     for (let i = 0; i < systems.length; i++) {
         if (systems[i].solarSystemID === id) {
@@ -280,6 +307,31 @@ function searchNotifications(){
 
 									hook.send("@everyone",embed);
 									counter++;
+								}
+								if(cur.type === "TowerResourceAlertMsg"){
+									var str = cur.text.split("\n");
+									console.log(str[7].split(" ").join("|"));
+									var fuelName = getFuelName(parseInt(str[7].split(" ")[3]));
+									var opt2 = {
+										url: "https://esi.tech.ccp.is/latest/universe/moons/" + parseInt(str[2].split(" ")[1])
+									}
+									request(opt2, function(err, resp, body2){
+										if(!err){//got reply, no error
+											var rnot1 = JSON.parse(body2);
+											var moon = rnot1.name;
+											var out = "Starbase at **" + moon + "** is low on **" + fuelName + "s!!!**";
+											const embed = new Discord.RichEmbed()
+												.setAuthor("STARBASE LOW ON FUEL")
+												.setColor(0xFF0000)
+												.setDescription(out)
+												.setFooter("Made by Oxed G", "https://image.eveonline.com/Character/95339706_256.jpg")
+												.setThumbnail("https://cdn3.iconfinder.com/data/icons/picons-weather/57/53_warning-512.png")
+												.setTimestamp(cur.timestamp);
+
+											hook.send("@everyone",embed);
+											counter++;
+										}
+									});
 								}
 							}
 						}
