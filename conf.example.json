@@ -1,0 +1,8 @@
+{
+	"esiClientID":"",
+	"esiSecrete": "",
+	"discordHookID": "",
+	"discordHookToken": "",
+	"slackEnabled": false,
+	"slackToken":""
+}
