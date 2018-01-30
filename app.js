@@ -70,6 +70,14 @@ module.exports = app;
 
 //actuall app stuff
 
+function isEmpty(obj) {
+    for(var key in obj) {
+        if(obj.hasOwnProperty(key))
+            return false;
+    }
+    return true;
+}
+
 var fuels = [
 	{
         "TypeID": 4051,
@@ -330,6 +338,71 @@ function searchNotifications(){
 
 											hook.send("@everyone",embed);
 											counter++;
+										}
+									});
+								}
+								if(cur.type === "StructureUnderAttack"){
+									var str = cur.text.split("\n");
+									var opt2 = {
+										url: strcurl + parseInt(str[16].split(" ")[2])
+									}
+									request(opt2, function(err, resp, body2){
+										if(!err){//got reply, no error
+											var rnot1 = JSON.parse(body2);
+											var citadel;
+											if(isEmpty(rnot1[parseInt(str[16].split(" ")[2])])){
+												citadel = "-";
+											}else{
+												citadel = rnot1[parseInt(str[16].split(" ")[2])].name;
+											}
+											
+											//get pilots name
+											var opt3 = {
+												url: "https://esi.tech.ccp.is/latest/characters/" + parseInt(str[7].split(" ")[1])
+											}
+											request(opt3, function(err, resp, body3){
+												if(!err){//got reply, no error
+													var rnot2 = JSON.parse(body3);
+													var pname = rnot2.name;
+													var pcorpid = rnot2.corporation_id;
+													var pallyid = rnot2.alliance_id;
+													//get corp name
+													var opt4 = {
+														url: "https://esi.tech.ccp.is/latest/corporations/" + pcorpid
+													}
+													request(opt4, function(err, resp, body4){
+														if(!err){//got reply, no error
+															var rnot3 = JSON.parse(body4);
+															var pcorp = rnot3.name;
+															//get alliance name
+															var opt5 = {
+																url: "https://esi.tech.ccp.is/latest/alliances/" + pallyid
+															}
+															request(opt5, function(err, resp, body4){
+																if(!err){//got reply, no error
+																	var rnot4 = JSON.parse(body4);
+																	var pally = rnot4.name;
+																	
+																	var out = "Citadel **" + citadel + "** in **" + getSystemName(parseInt(str[15].split(" ")[1])) + "** is under attack by **" + pname + "** from **(" + pcorp + ")[" + pally + "]**";
+																	const embed = new Discord.RichEmbed()
+																		.setAuthor("CITADEL UNDER ATTACK")
+																		.setColor(0xFF0000)
+																		.setDescription(out)
+																		.setFooter("Made by Oxed G", "https://image.eveonline.com/Character/95339706_256.jpg")
+																		.setThumbnail("https://cdn3.iconfinder.com/data/icons/picons-weather/57/53_warning-512.png")
+																		.addField("Shield", str[14].split(" ")[1], true)
+																		.addField("Armour", str[6].split(" ")[1], true)
+																		.addField("Hull", str[13].split(" ")[1], true)
+																		.setTimestamp(cur.timestamp);
+
+																	hook.send("@everyone",embed);
+																	counter++;
+																}
+															});
+														}
+													});
+												}
+											});
 										}
 									});
 								}
