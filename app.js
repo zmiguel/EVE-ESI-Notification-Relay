@@ -21,7 +21,7 @@ var counter = 0;
 
 cron.schedule('* * * * *', function() {
 	console.log("RUNNING!!!");
-    searchNotifications();
+    setTimeout(searchNotifications,5000);
 });
 
 updateAccess("all");
@@ -111,19 +111,6 @@ function getSystemName(id) {
             return systems[i].solarSystemName;
         }
     }
-}
-
-function getCitadelName(id) {
-    var opt = {
-		url: strcurl + id
-	}
-	request(opt, function(err, resp, body){
-		if(!err){//got reply, no error
-			var rnot = JSON.parse(body);
-			console.log(rnot[id].name);
-			return rnot[id].name;
-		}
-	});
 }
 
 function updateAccess(id){
@@ -273,8 +260,13 @@ function searchNotifications(){
 									request(opt2, function(err, resp, body2){
 										if(!err){//got reply, no error
 											var rnot1 = JSON.parse(body2);
-											var citadel = rnot1[parseInt(str[4].split(" ")[2])].name;
-											var out = "Citadel **" + citadel + "** is low on fuel!!!";
+											var citadel;
+											if(isEmpty(rnot1[parseInt(str[4].split(" ")[2])])){
+												citadel = "-";
+											}else{
+												citadel = rnot1[parseInt(str[4].split(" ")[2])].name;
+											}
+											var out = "Citadel **" + citadel + "** in **" + getSystemName(parseInt(str[3].split(" ")[1])) + "** is low on fuel!!!";
 											const embed = new Discord.RichEmbed()
 												.setAuthor("CITADEL LOW ON FUEL")
 												.setColor(0xFF0000)
@@ -318,7 +310,6 @@ function searchNotifications(){
 								}
 								if(cur.type === "TowerResourceAlertMsg"){
 									var str = cur.text.split("\n");
-									console.log(str[7].split(" ").join("|"));
 									var fuelName = getFuelName(parseInt(str[7].split(" ")[3]));
 									var opt2 = {
 										url: "https://esi.tech.ccp.is/latest/universe/moons/" + parseInt(str[2].split(" ")[1])
@@ -405,6 +396,20 @@ function searchNotifications(){
 											});
 										}
 									});
+								}
+								if(cur.type === "StructureServicesOffline"){
+									var str = cur.text.split("\n");
+									var out = "Citadel in **" + getSystemName(parseInt(str[4].split(" ")[1])) + "**  is out of fuel!!!";
+									const embed = new Discord.RichEmbed()
+										.setAuthor("CITADEL OUT OF FUEL")
+										.setColor(0xFF0000)
+										.setDescription(out)
+										.setFooter("Made by Oxed G", "https://image.eveonline.com/Character/95339706_256.jpg")
+										.setThumbnail("https://cdn3.iconfinder.com/data/icons/picons-weather/57/53_warning-512.png")
+										.setTimestamp(cur.timestamp);
+
+									hook.send("@everyone",embed);
+									counter++;
 								}
 							}
 						}
